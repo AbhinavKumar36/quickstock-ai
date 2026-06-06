@@ -285,146 +285,151 @@ export default function Login({ onAuthSuccess }) {
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-      {/* ================= LEFT SIDE: CORPORATE BRAND SHOWCASE ================= */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#080b11] via-[#040609] to-[#0d131f] border-r border-zinc-800/40 flex-col justify-between p-12 relative overflow-hidden">
-        {/* Subtle grid pattern background overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30"></div>
+      {/* ================= LEFT SIDE: CORPORATE BRAND SHOWCASE (Canva Banner) ================= */}
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden flex-col justify-between p-12">
+        {/* Background Image Banner */}
+        <img 
+          src="./banner.jpg" 
+          alt="QuickStock Portal Banner" 
+          className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+        />
+        {/* High-quality dark blur gradient overlay to blend with dark mode */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#06070a] via-[#06070a]/70 to-transparent"></div>
         
-        {/* Header brand tag */}
-        <div className="flex items-center gap-2.5 relative z-10">
-          <img src="./logo.png" alt="QuickStock Brand Logo" className="h-8 w-8 object-contain rounded-md" />
-          <span className="text-md font-bold tracking-tight text-white uppercase font-mono">QuickStock Core</span>
+        {/* Header Brand Badge */}
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="h-9 w-9 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 shadow-lg">
+            <img src="./logo.png" alt="QuickStock Logo" className="h-6 w-6 object-contain rounded" />
+          </div>
+          <span className="text-sm font-extrabold tracking-widest text-white uppercase font-mono bg-black/20 px-2.5 py-0.5 rounded">QuickStock</span>
         </div>
 
-        {/* Center content: Large logo presentation */}
-        <div className="my-auto text-left max-w-md relative z-10 flex flex-col items-center">
-          <img 
-            src="./logo.png" 
-            alt="QuickStock Logo" 
-            className="w-64 h-64 object-contain mb-8 rounded-2xl shadow-[0_0_50px_rgba(59,130,246,0.15)] border border-blue-500/10 hover:scale-[1.02] transition-transform duration-500" 
-          />
-          <h1 className="text-2xl font-black text-white leading-tight font-sans text-center">
-            Cognitive Inventory Tracking & Realtime Logistics Control
-          </h1>
-          <p className="text-xs text-zinc-400 mt-3 text-center leading-relaxed">
-            Realtime supply chain synchronization, Holt-Winters demand velocity forecasting, and secure role-based authorizations.
+        {/* Corporate Message */}
+        <div className="mt-auto relative z-10 max-w-md bg-black/45 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-2xl transition-all duration-300 hover:border-blue-500/30">
+          <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-widest bg-blue-500/10 px-2 py-1 rounded">Control Center</span>
+          <h2 className="text-xl font-bold text-white mt-3 leading-snug">
+            Cognitive Inventory & Dynamic Logistics
+          </h2>
+          <p className="text-xs text-zinc-300 mt-2 leading-relaxed">
+            Predictive Holt-Winters demand velocity forecasting, safety thresholds, and automated B2B procurement pipelines.
           </p>
-        </div>
-
-        {/* Footer info */}
-        <div className="text-[10px] text-zinc-500 relative z-10">
-          QuickStock Inventory Network &copy; {new Date().getFullYear()} &middot; Enterprise Grade B2B SaaS
         </div>
       </div>
 
-      {/* ================= RIGHT SIDE: AUTHENTICATION CONTAINER ================= */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 relative z-10">
+      {/* ================= RIGHT SIDE: CANVA-STYLE AUTH CONTAINER ================= */}
+      <div className="flex-1 flex flex-col justify-center items-center p-8 relative z-10 bg-[#0B0B0E]/30 backdrop-blur-sm">
         
-        {/* Mobile View Header Logo */}
-        <div className="flex md:hidden flex-col items-center gap-2 mb-8">
-          <img src="./logo.png" alt="QuickStock Logo" className="h-16 w-16 object-contain rounded-xl shadow-lg" />
-          <h1 className="text-xl font-black text-white uppercase tracking-tight">QuickStock</h1>
-          <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Enterprise Logistics Portal</p>
-        </div>
-
-        <div className="w-full max-w-md bg-[#0B0B0E]/60 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-8 shadow-[0_20px_45px_rgba(0,0,0,0.5)] relative overflow-hidden transition-all duration-300">
-          {/* Top border accent line */}
-          <div className="absolute top-0 right-0 left-0 h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-
-          <h2 className="text-base font-bold text-white text-center mb-6 font-sans">
-            {isSignUp ? 'Create Corporate Account' : 'Secure System Sign In'}
-          </h2>
-
-          <form onSubmit={handleAuth} className="space-y-4">
-            
-            <div>
-              <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                <input 
-                  type="email" 
-                  placeholder="julien.deaux@quickstock.ai" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 transition-colors"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 transition-colors"
-                  required
-                />
-              </div>
-            </div>
-
-            {isSignUp && (
-              <div>
-                <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Access Role Profile</label>
-                <div className="relative">
-                  <Shield className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                  <select 
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    <option value="staff" className="bg-zinc-950 text-zinc-200 font-semibold">Staff Operations Profile</option>
-                    <option value="admin" className="bg-zinc-950 text-zinc-200 font-semibold">System Administrator (Admin)</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl font-medium">
-                {error}
-              </div>
-            )}
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-xs font-bold text-white rounded-lg shadow-lg transition-all transform active:scale-98 disabled:opacity-50 hover:scale-[1.01]"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
-                  Processing Authorization...
-                </span>
-              ) : isSignUp ? (
-                'Sign Up and Assign Role'
-              ) : (
-                'Verify Credentials and Enter'
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center text-xs">
-            <span className="text-zinc-500">
-              {isSignUp ? 'Already have an authorized account?' : 'Need operational authorization?'}
-            </span>{' '}
-            <button 
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-              }}
-              className="text-blue-400 hover:text-blue-300 font-bold ml-1 transition-colors"
-            >
-              {isSignUp ? 'Sign In' : 'Request Profile Access'}
-            </button>
+        <div className="w-full max-w-[420px] flex flex-col">
+          {/* Centered Brand Icon */}
+          <div className="flex flex-col items-center mb-6">
+            <img 
+              src="./logo.png" 
+              alt="QuickStock Logo" 
+              className="h-16 w-16 object-contain mb-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-zinc-800/80" 
+            />
+            <h1 className="text-2xl font-bold text-white tracking-tight text-center">
+              {isSignUp ? 'Create account in seconds' : 'Log in to your workspace'}
+            </h1>
+            <p className="text-xs text-zinc-400 mt-1.5 text-center leading-relaxed max-w-[320px]">
+              Use your corporate credentials to sync with the warehouse telemetry network.
+            </p>
           </div>
 
-          <div className="mt-8 pt-4 border-t border-zinc-800/80 text-[10px] text-zinc-500 text-center leading-relaxed">
-            Admin profiles can write and procure orders. Staff profiles have read-only monitoring dashboards.
+          <div className="bg-[#0B0B0E]/60 border border-zinc-850/80 backdrop-blur-md rounded-[28px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative overflow-hidden transition-all duration-300">
+            {/* Top border accent line */}
+            <div className="absolute top-0 right-0 left-0 h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              
+              <div>
+                <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Corporate Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <input 
+                    type="email" 
+                    placeholder="name@quickstock.ai" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-[#121217]/95 text-xs text-zinc-200 pl-11 pr-4 py-3 rounded-xl border border-zinc-800/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Security Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                  <input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#121217]/95 text-xs text-zinc-200 pl-11 pr-4 py-3 rounded-xl border border-zinc-800/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans"
+                    required
+                  />
+                </div>
+              </div>
+
+              {isSignUp && (
+                <div>
+                  <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Access Role Profile</label>
+                  <div className="relative">
+                    <Shield className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" />
+                    <select 
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-full bg-[#121217]/95 text-xs text-zinc-200 pl-11 pr-4 py-3 rounded-xl border border-zinc-800/80 focus:outline-none focus:border-indigo-500 cursor-pointer font-sans"
+                    >
+                      <option value="staff" className="bg-zinc-950 text-zinc-200 font-semibold">Staff Operations Profile</option>
+                      <option value="admin" className="bg-zinc-950 text-zinc-200 font-semibold">System Administrator (Admin)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl font-medium">
+                  {error}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-110 text-xs font-bold text-white rounded-xl shadow-lg transition-all transform active:scale-98 disabled:opacity-50 mt-2"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
+                    Authorizing Profile...
+                  </span>
+                ) : isSignUp ? (
+                  'Sign Up'
+                ) : (
+                  'Log In'
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center text-xs">
+              <span className="text-zinc-500">
+                {isSignUp ? 'Already have an account?' : 'Need operational access?'}
+              </span>{' '}
+              <button 
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                }}
+                className="text-indigo-400 hover:text-indigo-300 font-bold ml-1 transition-colors"
+              >
+                {isSignUp ? 'Log in' : 'Sign up'}
+              </button>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-zinc-800/60 text-[10px] text-zinc-500 text-center leading-relaxed">
+              Standard operations feature read-only dashboards, while Admin profiles maintain procurement actions.
+            </div>
           </div>
         </div>
       </div>
