@@ -68,3 +68,6 @@ QuickStock is a premium, real-time B2B SaaS logistics platform designed to optim
 3. Open the application at `http://localhost:5173`.
 4. Fill out the Firebase configuration parameters in the setup wizard on first load to initialize connection nodes.
 5. Create your initial Admin user profile through the authentication screen to seed the default mock datasets.
+
+---
+*Optimized logistics and realtime synchronization with QuickStock.*
