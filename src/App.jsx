@@ -928,8 +928,52 @@ export default function App() {
       setChatMessages(prev => [...prev, { sender: 'ai', text: generatedText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       await addLog("Successfully completed Gemini AI recommendation query", "success");
     } catch (error) {
-      console.error(error);
-      setChatMessages(prev => [...prev, { sender: 'ai', text: "Error: Failed to reach the Gemini real-time endpoint. Operating in fallback system assistant mode. Feel free to re-request.", time: "System" }]);
+      console.warn("Gemini API error, running local fallback assistant logic:", error);
+      
+      let reply = "";
+      const queryLower = userMsg.toLowerCase();
+      
+      // Compute low stock items
+      const lowStockItems = inventory.filter(item => {
+        const computedSS = calculateSafetyStock(
+          item.dailyDemand, 
+          item.demandStdDev, 
+          currentWarehouse.leadTimeDays, 
+          currentWarehouse.leadTimeStdDev, 
+          targetServiceLevel
+        );
+        return item.stock <= computedSS;
+      });
+
+      if (queryLower.includes("hi") || queryLower.includes("hello") || queryLower.includes("hey")) {
+        reply = `Hello! I am the Live ${currentWarehouse.name.includes("Superstore") || currentWarehouse.name.includes("Section") ? "SMS retail" : "QuickStock logistics"} assistant. I can help you analyze inventory levels, safety stocks, and pending purchase orders. What can I do for you today?`;
+      } else if (queryLower.includes("safety stock") || queryLower.includes("threshold") || queryLower.includes("z-score") || queryLower.includes("formula")) {
+        reply = `Safety Stock (SS) is calculated dynamically using the formula: \n\n**SS = Z * √(L * σ_d² + d² * σ_L²)**\n\n- **Z**: Service Level Factor (e.g., 1.65 for 95%)\n- **L**: Average Lead Time (${currentWarehouse.leadTimeDays} days)\n- **σ_d**: Daily Demand Std Dev\n- **d**: Average Daily Demand\n- **σ_L**: Lead Time Std Dev (${currentWarehouse.leadTimeStdDev} days)\n\nYou can adjust these parameters under the **Settings** tab to optimize holding vs. stockout costs.`;
+      } else if (queryLower.includes("replenishment") || queryLower.includes("slow-moving") || queryLower.includes("slow moving") || queryLower.includes("stagnant") || queryLower.includes("dead stock") || queryLower.includes("deadstock")) {
+        reply = `To optimize slow-moving lines or dead stock (items static for more than ${deadStockThresholdDays} days), we recommend:\n1. Offering promotional bundles on low-velocity items.\n2. Adjusting the Dead Stock Threshold under the **Settings** tab.\n3. Reducing reorder bounds to minimize holding costs.`;
+      } else if (queryLower.includes("low stock") || queryLower.includes("alert") || queryLower.includes("restock") || queryLower.includes("below safety")) {
+        if (lowStockItems.length > 0) {
+          const list = lowStockItems.map(i => `- **${i.name}** (SKU: ${i.sku}, Stock: ${i.stock}/${i.maxStock})`).join("\n");
+          reply = `Here are the items currently running near or below their safety stock thresholds:\n\n${list}\n\nYou can dispatch Purchase Orders (+50 injects or custom reorders) directly from the **Recommendations** panel or dashboard table.`;
+        } else {
+          reply = "All system stock levels are currently healthy and operating safely above their calculated safety stock buffers.";
+        }
+      } else if (queryLower.includes("analytics") || queryLower.includes("forecast") || queryLower.includes("holt-winters") || queryLower.includes("holt winters")) {
+        reply = `We employ Holt-Winters Triple Exponential Smoothing to forecast demand. The parameters for this warehouse are:\n- **Alpha** (Base level): ${hwAlpha}\n- **Beta** (Trend): ${hwBeta}\n- **Gamma** (Seasonality): ${hwGamma}\n\nYou can view predicted curves in the **AI Insights** tab.`;
+      } else {
+        reply = `I've analyzed the telemetry database for **${currentWarehouse.name}** (${currentWarehouse.location}).\n\nTotal inventory line items: **${inventory.length}**. Items needing restock: **${lowStockItems.length}**.\n\nSince the Gemini endpoint is currently unreachable (leaked API key or network block), I am running in local offline diagnostics mode. Please feel free to ask about safety stocks, low stock items, or replenishment formulas!`;
+      }
+
+      // Simulate a small delay for a realistic assistant typing experience
+      setTimeout(() => {
+        setChatMessages(prev => [...prev, { 
+          sender: 'ai', 
+          text: reply, 
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        }]);
+        setIsTyping(false);
+      }, 750);
+      return; // prevent finally block from overriding typing state too early
     } finally {
       setIsTyping(false);
     }
@@ -977,7 +1021,30 @@ export default function App() {
       setGeneratedEmail(emailText);
       await addLog("AI B2B Supplier Email drafted successfully", "success");
     } catch (error) {
-      setGeneratedEmail("An error occurred while generating the supplier email draft. Please retry.");
+      console.warn("Gemini API error, running local fallback email writer:", error);
+      const fallbackEmail = `Subject: Bulk Replenishment Request - ${product.name} (SKU: ${product.sku})
+
+Dear Supplier Team,
+
+This is an official procurement request from our operations control center.
+
+Our active inventory levels for the following product have dropped below our calculated safety thresholds:
+- Product: ${product.name}
+- SKU: ${product.sku}
+- Current Stock: ${product.stock} units
+- Category: ${product.category}
+
+We would like to request a formal price quote for a bulk replenishment order of 100 units. Our standard retail price is listed as ₹${product.price} per unit.
+
+Please confirm availability, bulk pricing tiers, and estimated shipping lead times to our facility at ${currentWarehouse.name} (${currentWarehouse.location}).
+
+Thank you for your prompt response.
+
+Best regards,
+Procurement & Operations Control System
+${currentUser?.email || "System Administrator"}`;
+      setGeneratedEmail(fallbackEmail);
+      await addLog("Generated dynamic offline fallback supplier email", "info");
     } finally {
       setIsGeneratingEmail(false);
     }
@@ -1028,8 +1095,45 @@ export default function App() {
         throw new Error("Missing image predictions bytes");
       }
     } catch (error) {
-      console.error(error);
-      showToast("Failed to compile promotional graphics via Imagen model. Try again.", "error");
+      console.warn("Imagen API error, running local fallback vector banner generator:", error);
+      
+      const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="100%" height="100%">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1e1b4b;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <rect width="800" height="400" fill="url(#grad)" rx="16" />
+        <rect x="15" y="15" width="770" height="370" fill="none" stroke="url(#accent)" stroke-width="2" rx="12" opacity="0.4" />
+        <circle cx="700" cy="100" r="120" fill="#3b82f6" opacity="0.15" filter="url(#glow)" />
+        <circle cx="100" cy="300" r="90" fill="#8b5cf6" opacity="0.1" filter="url(#glow)" />
+        <rect x="50" y="50" width="160" height="30" fill="url(#accent)" rx="15" />
+        <text x="130" y="69" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" letter-spacing="1">SPECIAL PROMO</text>
+        <text x="50" y="130" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" filter="url(#glow)">${item.name}</text>
+        <text x="50" y="170" fill="#94a3b8" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500">Category: ${item.category} | SKU: ${item.sku}</text>
+        <text x="50" y="240" fill="#3b82f6" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="900">₹${item.price}</text>
+        <text x="210" y="240" fill="#10b981" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700">Stock: ${item.stock} left</text>
+        <text x="50" y="320" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600">Exclusive retail offer - Grab yours before stockouts!</text>
+        <rect x="550" y="295" width="200" height="50" fill="none" stroke="#ffffff" stroke-width="2" rx="25" />
+        <text x="650" y="327" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" text-anchor="middle">ORDER NOW</text>
+      </svg>`;
+      
+      const base64Svg = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgMarkup)));
+      setPromoImageResult(base64Svg);
+      showToast("Operating offline mode: Generated fallback vector banner design.", "info");
+      await addLog("Compiled offline fallback promo banner using SVG data URI", "info");
     } finally {
       setIsGeneratingImage(false);
     }
