@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Custom scrollbars for a premium look */
 ::-webkit-scrollbar {
   width: 6px;

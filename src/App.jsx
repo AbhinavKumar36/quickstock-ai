@@ -69,7 +69,7 @@ import {
   getDocs, 
   writeBatch 
 } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { signOut, updateProfile, updatePassword } from 'firebase/auth';
 
 import { auth, db, isFirebaseInitialized, clearFirebaseConfig, getFirebaseConfig } from './firebase';
 import { initializeApp } from 'firebase/app';
@@ -134,6 +134,22 @@ export default function App() {
   const [newUsrPassword, setNewUsrPassword] = useState('');
   const [newUsrRole, setNewUsrRole] = useState('staff');
   const [isAddingUser, setIsAddingUser] = useState(false);
+
+  // Profile & Password settings states
+  const [profileName, setProfileName] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Stripe Checkout Mock states
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Firestore Realtime States
   const [warehouses, setWarehouses] = useState({});
@@ -220,6 +236,7 @@ export default function App() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         setCurrentUser(user);
+        setProfileName(user.displayName || '');
         
         // Listen for user role dynamics
         onSnapshot(doc(db, "users", user.uid), (docVal) => {
@@ -795,6 +812,64 @@ export default function App() {
     }
   };
 
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    if (!profileName.trim()) {
+      showToast("Display name cannot be empty.", "error");
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      await updateProfile(auth.currentUser, {
+        displayName: profileName.trim()
+      });
+      // Force user refresh
+      setCurrentUser({ ...auth.currentUser });
+      showToast("Profile display name updated successfully!", "success");
+      await addLog("Updated user profile display name", "info");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, "error");
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!newPassword) {
+      showToast("Please enter a new password.", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("New passwords do not match.", "error");
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast("Password must be at least 6 characters.", "error");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+      showToast("Password updated successfully!", "success");
+      await addLog("Changed user account password securely", "info");
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      console.error(err);
+      let errMsg = err.message;
+      if (err.code === 'auth/requires-recent-login') {
+        errMsg = "This action requires reauthentication. Please sign out and sign back in to change your password.";
+      }
+      showToast(errMsg, "error");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   // Chat/Gemini integration logic
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
@@ -832,7 +907,7 @@ export default function App() {
 
       Respond strictly as a logistics expert. Analyze their input, reference these dynamic values, point out stocks running below dynamic safety thresholds (SS) where applicable, and offer solid tactical advice. Avoid generic disclaimers.`;
 
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
 
       const payload = {
         contents: [{ parts: [{ text: userMsg }] }],
@@ -886,7 +961,7 @@ export default function App() {
     setShowEmailModal(true);
 
     try {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
       const queryPrompt = `Draft an official B2B bulk restock email to our hardware manufacturer for item "${product.name}" (SKU: ${product.sku}). 
       Our active stock has dropped to only ${product.stock} units, which is below our safety parameter limits. 
       Ask for a formal price quote for 100 units based on our retail price of ₹${product.price}. Keep the language professional, direct, and authoritative.`;
@@ -1084,7 +1159,7 @@ export default function App() {
               }`}
             >
               <Settings className="h-4 w-4" />
-              <span>Safety Parameters</span>
+              <span>Settings</span>
             </button>
           </div>
         </nav>
@@ -2239,6 +2314,83 @@ export default function App() {
                 </div>
               )}
 
+              {/* User Profile Settings & Security */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Profile Details Card */}
+                <div className="bg-white dark:bg-[#0B0B0E] p-6 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-4 shadow-sm">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2">User Profile Settings</h3>
+                  <form onSubmit={handleUpdateProfile} className="space-y-4 font-sans">
+                    <div>
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider">Account Email</p>
+                      <p className="text-xs text-zinc-800 dark:text-zinc-200 font-mono font-medium mt-1">{currentUser?.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider mb-2">Active Security Role</p>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        userRole === 'admin' 
+                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold' 
+                          : 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400'
+                      }`}>
+                        {userRole.toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1.5">Display Name</label>
+                      <input 
+                        type="text"
+                        placeholder="Enter your display name..."
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-[#121217] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatingProfile}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-md hover:scale-[1.01] transition-all disabled:opacity-50"
+                    >
+                      {isUpdatingProfile ? "Saving Profile..." : "Update Profile"}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Change Password Card */}
+                <div className="bg-white dark:bg-[#0B0B0E] p-6 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-4 shadow-sm">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2">Change Account Password</h3>
+                  <form onSubmit={handleUpdatePassword} className="space-y-3 font-sans">
+                    <div>
+                      <label className="block text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1.5">New Security Password</label>
+                      <input 
+                        type="password"
+                        placeholder="Minimum 6 characters..."
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-[#121217] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-wider mb-1.5">Confirm New Password</label>
+                      <input 
+                        type="password"
+                        placeholder="Re-enter new password..."
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-[#121217] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={isUpdatingPassword}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-md hover:scale-[1.01] transition-all disabled:opacity-50"
+                    >
+                      {isUpdatingPassword ? "Updating Password..." : "Change Password"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+
               <div className="bg-white dark:bg-[#0B0B0E] p-6 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-4 shadow-sm">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2">AI Integration Credentials</h3>
                 
@@ -2433,17 +2585,9 @@ export default function App() {
                 <p className="flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500" /> Automated PO documentation and drafts</p>
               </div>
               <button
-                onClick={async () => {
+                onClick={() => {
                   if (isAdmin) {
-                    try {
-                      const whRef = doc(db, "warehouses", activeWarehouseKey);
-                      await updateDoc(whRef, { isPro: true });
-                      setShowPaywallModal(false);
-                      showToast("Operational tier successfully upgraded!", "success");
-                      await addLog("Upgraded operational tier to Enterprise Pro via paywall checkout", "success");
-                    } catch (err) {
-                      console.error(err);
-                    }
+                    setShowStripeCheckout(true);
                   } else {
                     showToast("Upgrade requires Administrator authorization.", "error");
                   }
@@ -2455,6 +2599,175 @@ export default function App() {
               {!isAdmin && (
                 <p className="text-[9px] text-zinc-450 dark:text-zinc-550 italic">Please contact your system administrator to enable Pro features.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: STRIPE MOCK PAYMENT GATEWAY ================= */}
+      {showStripeCheckout && (
+        <div className="fixed inset-0 bg-[#000]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0E0E12] border border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-md overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.5)] p-8 relative animate-fade-in text-zinc-800 dark:text-zinc-100 font-sans">
+            <button 
+              onClick={() => {
+                setShowStripeCheckout(false);
+                setCardNumber('');
+                setCardExpiry('');
+                setCardCvc('');
+                setCardName('');
+              }} 
+              className="absolute top-5 right-5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            <div className="space-y-6">
+              {/* Stripe Branding Header */}
+              <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/80 pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-12 rounded bg-indigo-600 flex items-center justify-center text-white font-black text-xs font-mono tracking-widest shadow">
+                    stripe
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 dark:text-zinc-500">Secure Checkout</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase font-semibold">Premium Charge</p>
+                  <p className="text-sm font-extrabold text-indigo-650 dark:text-indigo-400">₹999.00 / mo</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Complete Premium Upgrade</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  Enter your sandbox billing card credentials to unlock real-time forecasting and dynamic safety stock modules.
+                </p>
+              </div>
+
+              {/* Payment Form */}
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!cardNumber || !cardExpiry || !cardCvc || !cardName) {
+                    showToast("Please fill in all credit card details.", "error");
+                    return;
+                  }
+                  
+                  setIsProcessingPayment(true);
+                  // Mock payment delay
+                  await new Promise(resolve => setTimeout(resolve, 1500));
+                  
+                  try {
+                    const whRef = doc(db, "warehouses", activeWarehouseKey);
+                    await updateDoc(whRef, { isPro: true });
+                    
+                    showToast("Payment successful! Enterprise Pro features unlocked.", "success");
+                    await addLog(`Successfully processed premium Stripe charge of ₹999.00 for ${currentWarehouse.name}.`, "success");
+                    await addLog(`Upgraded operational tier to Enterprise Pro via payment gateway checkout.`, "success");
+                    
+                    // Reset and close
+                    setShowStripeCheckout(false);
+                    setShowPaywallModal(false);
+                    setCardNumber('');
+                    setCardExpiry('');
+                    setCardCvc('');
+                    setCardName('');
+                  } catch (err) {
+                    console.error(err);
+                    showToast("Database synchronization failed during payment processing.", "error");
+                  } finally {
+                    setIsProcessingPayment(false);
+                  }
+                }}
+                className="space-y-4 text-left"
+              >
+                <div>
+                  <label className="block text-[10px] text-zinc-400 dark:text-zinc-550 font-bold uppercase tracking-wider mb-1.5 ml-0.5">Cardholder Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="Abhinav Kumar" 
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-[#15151B] border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-zinc-400 dark:text-zinc-550 font-bold uppercase tracking-wider mb-1.5 ml-0.5">Card Number</label>
+                  <div className="relative font-sans">
+                    <input 
+                      type="text" 
+                      placeholder="4242 4242 4242 4242" 
+                      maxLength={19}
+                      value={cardNumber}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                        setCardNumber(val);
+                      }}
+                      className="w-full bg-zinc-50 dark:bg-[#15151B] border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+                      required
+                    />
+                    <div className="absolute right-3 top-3 flex gap-1">
+                      <div className="h-5 w-8 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[7px] font-bold text-zinc-500">VISA</div>
+                      <div className="h-5 w-8 rounded bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[7px] font-bold text-zinc-500">MC</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] text-zinc-400 dark:text-zinc-550 font-bold uppercase tracking-wider mb-1.5 ml-0.5">Expiration Date</label>
+                    <input 
+                      type="text" 
+                      placeholder="MM/YY" 
+                      maxLength={5}
+                      value={cardExpiry}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (val.length === 2 && !val.includes('/')) val += '/';
+                        setCardExpiry(val);
+                      }}
+                      className="w-full bg-zinc-50 dark:bg-[#15151B] border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono animate-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-zinc-400 dark:text-zinc-550 font-bold uppercase tracking-wider mb-1.5 ml-0.5">CVC / CVV</label>
+                    <input 
+                      type="password" 
+                      placeholder="•••" 
+                      maxLength={3}
+                      value={cardCvc}
+                      onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-zinc-50 dark:bg-[#15151B] border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-xs text-zinc-850 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isProcessingPayment}
+                  className="w-full py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:brightness-110 text-white text-xs font-bold rounded-xl shadow-lg transition-all transform active:scale-98 disabled:opacity-50 mt-4 flex items-center justify-center gap-2 font-sans"
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
+                      <span>Processing Stripe Handshake...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      <span>Authorize Payment - ₹999.00</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="flex items-center justify-center gap-1.5 text-[9px] text-zinc-450 dark:text-zinc-500 font-medium">
+                <Lock className="h-3 w-3 text-emerald-500" />
+                <span>PCI-DSS Compliant 256-bit SSL encrypted connection.</span>
+              </div>
             </div>
           </div>
         </div>
