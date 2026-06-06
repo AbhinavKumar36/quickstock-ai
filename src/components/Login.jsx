@@ -279,122 +279,153 @@ export default function Login({ onAuthSuccess }) {
 
   // Firebase IS configured, show authentication form
   return (
-    <div className="min-h-screen bg-[#070709] text-zinc-100 flex flex-col justify-center items-center p-6 font-sans antialiased">
+    <div className="min-h-screen bg-[#06070a] text-zinc-100 flex flex-col md:flex-row font-sans antialiased w-full relative overflow-hidden">
       
-      {/* Background radial gradients for wow aesthetics */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* Ambient glowing backdrops */}
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-[#0B0B0E]/80 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-8 shadow-[0_15px_35px_rgba(0,0,0,0.4)] relative overflow-hidden">
-        {/* Colorful top border accent */}
-        <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600"></div>
-
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)]">
-            <Cpu className="h-5 w-5 text-white animate-pulse" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-white">QuickStock</h1>
-            <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Enterprise Logistics Portal</p>
-          </div>
+      {/* ================= LEFT SIDE: CORPORATE BRAND SHOWCASE ================= */}
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#080b11] via-[#040609] to-[#0d131f] border-r border-zinc-800/40 flex-col justify-between p-12 relative overflow-hidden">
+        {/* Subtle grid pattern background overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30"></div>
+        
+        {/* Header brand tag */}
+        <div className="flex items-center gap-2.5 relative z-10">
+          <img src="./logo.png" alt="QuickStock Brand Logo" className="h-8 w-8 object-contain rounded-md" />
+          <span className="text-md font-bold tracking-tight text-white uppercase font-mono">QuickStock Core</span>
         </div>
 
-        <h2 className="text-base font-bold text-white text-center mb-6">
-          {isSignUp ? 'Create Corporate Account' : 'Secure System Sign In'}
-        </h2>
+        {/* Center content: Large logo presentation */}
+        <div className="my-auto text-left max-w-md relative z-10 flex flex-col items-center">
+          <img 
+            src="./logo.png" 
+            alt="QuickStock Logo" 
+            className="w-64 h-64 object-contain mb-8 rounded-2xl shadow-[0_0_50px_rgba(59,130,246,0.15)] border border-blue-500/10 hover:scale-[1.02] transition-transform duration-500" 
+          />
+          <h1 className="text-2xl font-black text-white leading-tight font-sans text-center">
+            Cognitive Inventory Tracking & Realtime Logistics Control
+          </h1>
+          <p className="text-xs text-zinc-400 mt-3 text-center leading-relaxed">
+            Realtime supply chain synchronization, Holt-Winters demand velocity forecasting, and secure role-based authorizations.
+          </p>
+        </div>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          
-          <div>
-            <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-              <input 
-                type="email" 
-                placeholder="julien.deaux@quickstock.ai" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#121217] text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-800 focus:outline-none focus:border-blue-500 transition-colors"
-                required
-              />
-            </div>
-          </div>
+        {/* Footer info */}
+        <div className="text-[10px] text-zinc-500 relative z-10">
+          QuickStock Inventory Network &copy; {new Date().getFullYear()} &middot; Enterprise Grade B2B SaaS
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121217] text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-800 focus:outline-none focus:border-blue-500 transition-colors"
-                required
-              />
-            </div>
-          </div>
+      {/* ================= RIGHT SIDE: AUTHENTICATION CONTAINER ================= */}
+      <div className="flex-1 flex flex-col justify-center items-center p-6 relative z-10">
+        
+        {/* Mobile View Header Logo */}
+        <div className="flex md:hidden flex-col items-center gap-2 mb-8">
+          <img src="./logo.png" alt="QuickStock Logo" className="h-16 w-16 object-contain rounded-xl shadow-lg" />
+          <h1 className="text-xl font-black text-white uppercase tracking-tight">QuickStock</h1>
+          <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Enterprise Logistics Portal</p>
+        </div>
 
-          {isSignUp && (
+        <div className="w-full max-w-md bg-[#0B0B0E]/60 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-8 shadow-[0_20px_45px_rgba(0,0,0,0.5)] relative overflow-hidden transition-all duration-300">
+          {/* Top border accent line */}
+          <div className="absolute top-0 right-0 left-0 h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+          <h2 className="text-base font-bold text-white text-center mb-6 font-sans">
+            {isSignUp ? 'Create Corporate Account' : 'Secure System Sign In'}
+          </h2>
+
+          <form onSubmit={handleAuth} className="space-y-4">
+            
             <div>
-              <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Access Role Profile</label>
+              <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Email Address</label>
               <div className="relative">
-                <Shield className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
-                <select 
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-[#121217] text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-                >
-                  <option value="staff">Staff Operations Profile</option>
-                  <option value="admin">System Administrator (Admin)</option>
-                </select>
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <input 
+                  type="email" 
+                  placeholder="julien.deaux@quickstock.ai" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                />
               </div>
             </div>
-          )}
 
-          {error && (
-            <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl font-medium">
-              {error}
+            <div>
+              <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
             </div>
-          )}
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-xs font-bold text-white rounded-lg shadow-lg transition-all transform active:scale-98 disabled:opacity-50"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
-                Processing Authorization...
-              </span>
-            ) : isSignUp ? (
-              'Sign Up and Assign Role'
-            ) : (
-              'Verify Credentials and Enter'
+            {isSignUp && (
+              <div>
+                <label className="block text-[10px] text-zinc-400 font-bold uppercase tracking-wider mb-1.5">Access Role Profile</label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                  <select 
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full bg-[#121217]/90 text-xs text-zinc-200 pl-10 pr-4 py-2 rounded-lg border border-zinc-850 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  >
+                    <option value="staff" className="bg-zinc-950 text-zinc-200 font-semibold">Staff Operations Profile</option>
+                    <option value="admin" className="bg-zinc-950 text-zinc-200 font-semibold">System Administrator (Admin)</option>
+                  </select>
+                </div>
+              </div>
             )}
-          </button>
-        </form>
 
-        <div className="mt-6 text-center text-xs">
-          <span className="text-zinc-500">
-            {isSignUp ? 'Already have an authorized account?' : 'Need operational authorization?'}
-          </span>{' '}
-          <button 
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-            }}
-            className="text-blue-400 hover:text-blue-300 font-bold ml-1 transition-colors"
-          >
-            {isSignUp ? 'Sign In' : 'Request Profile Access'}
-          </button>
-        </div>
+            {error && (
+              <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl font-medium">
+                {error}
+              </div>
+            )}
 
-        {/* Debug credentials notice */}
-        <div className="mt-8 pt-4 border-t border-zinc-800/80 text-[10px] text-zinc-500 text-center leading-relaxed">
-          Admin profiles can write and procure orders. Staff profiles have read-only monitoring dashboards.
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-xs font-bold text-white rounded-lg shadow-lg transition-all transform active:scale-98 disabled:opacity-50 hover:scale-[1.01]"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
+                  Processing Authorization...
+                </span>
+              ) : isSignUp ? (
+                'Sign Up and Assign Role'
+              ) : (
+                'Verify Credentials and Enter'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-xs">
+            <span className="text-zinc-500">
+              {isSignUp ? 'Already have an authorized account?' : 'Need operational authorization?'}
+            </span>{' '}
+            <button 
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-blue-400 hover:text-blue-300 font-bold ml-1 transition-colors"
+            >
+              {isSignUp ? 'Sign In' : 'Request Profile Access'}
+            </button>
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-zinc-800/80 text-[10px] text-zinc-500 text-center leading-relaxed">
+            Admin profiles can write and procure orders. Staff profiles have read-only monitoring dashboards.
+          </div>
         </div>
       </div>
     </div>

@@ -964,8 +964,8 @@ export default function App() {
   if (authChecking) {
     return (
       <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#070709] text-zinc-800 dark:text-zinc-100 flex flex-col justify-center items-center font-sans antialiased">
-        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center animate-spin">
-          <Cpu className="h-5 w-5 text-white" />
+        <div className="h-10 w-10 flex items-center justify-center">
+          <img src="./logo.png" alt="QuickStock Logo" className="h-10 w-10 object-contain rounded-lg animate-pulse" />
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-4 tracking-wider uppercase font-semibold">Validating System Handshakes...</p>
       </div>
@@ -983,8 +983,8 @@ export default function App() {
       {/* ================= SIDEBAR ================= */}
       <aside className="w-64 bg-white dark:bg-[#0B0B0E] border-r border-zinc-200 dark:border-zinc-800/80 flex flex-col fixed h-full z-30 transition-all duration-300">
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-            <Cpu className="h-5 w-5 text-white animate-pulse" />
+          <div className="h-9 w-9 flex items-center justify-center">
+            <img src="./logo.png" alt="QuickStock Logo" className="h-9 w-9 object-contain rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.15)]" />
           </div>
           <div>
             <h1 className="text-md font-bold tracking-tight text-zinc-900 dark:text-white bg-clip-text">QuickStock</h1>
